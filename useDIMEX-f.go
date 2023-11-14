@@ -28,6 +28,8 @@
 
 package main
 
+/*
+
 import (
 	"SD/DIMEX"
 	"fmt"
@@ -92,3 +94,4 @@ func main() {
 		fmt.Println("[ APP id: ", id, " FORA   MX ]")
 	}
 }
+*/

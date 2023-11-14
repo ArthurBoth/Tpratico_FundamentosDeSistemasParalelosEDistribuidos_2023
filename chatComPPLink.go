@@ -10,6 +10,8 @@ ou, claro, fazer distribuido trocando os ip's
 
 package main
 
+/*
+
 import (
 	PP2PLink "SD/PP2PLink"
 	"bufio"
@@ -59,3 +61,4 @@ func main() {
 
 	<-(make(chan int))
 }
+*/
