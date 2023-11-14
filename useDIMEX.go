@@ -25,9 +25,9 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run useDIMEX.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002 ")
-		fmt.Println("go run useDIMEX.go 1 127.0.0.1:7002  127.0.0.1:5000  127.0.0.1:6001 ")
-		fmt.Println("go run useDIMEX.go 2 127.0.0.1:6001  127.0.0.1:7002  127.0.0.1:5000 ")
+		fmt.Println("go run useDIMEX.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("go run useDIMEX.go 1 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("go run useDIMEX.go 2 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
 		return
 	}
 
@@ -38,7 +38,7 @@ func main() {
 	var dmx *DIMEX.DIMEX_Module = DIMEX.NewDIMEX(addresses, id, true)
 	fmt.Println(dmx)
 
-	time.Sleep(5 * time.Second)
+	<- time.After(5 * time.Second)
 
 	for {
 		fmt.Println("[ APP id: ", id, " PEDE   MX ]")
