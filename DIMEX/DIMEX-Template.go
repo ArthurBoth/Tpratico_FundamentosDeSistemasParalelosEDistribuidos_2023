@@ -100,28 +100,28 @@ func (module *DIMEX_Module) Start() {
 	i := 0
 	go func() {
 		for {
-			fmt.Println("\n\n\\n\n\n\n\t\t\t\tEaí meu chapa: ", i, "\n\n\n\\n\n\n\n")
+			fmt.Println("\n\n\\n\n\t\t\tEaí meu chapa: ", i, "\n\\n\n\n")
 			i++
 			select {
 			case dmxR := <-module.Req: // vindo da  aplicação
 				if dmxR == ENTER {
 					module.outDbg("app pede mx")
-					module.handleUponReqEntry() // ENTRADA DO ALGORITMO
+					module.handleUponReqEntry()
 
 				} else if dmxR == EXIT {
 					module.outDbg("app libera mx")
-					module.handleUponReqExit() // ENTRADA DO ALGORITMO
+					module.handleUponReqExit()
 				}
 
 			case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo
-				fmt.Printf("dimex recebe da rede: ", msgOutro)
+				fmt.Print("dimex recebe da rede: ", msgOutro)
 				if strings.Contains(msgOutro.Message, "respOK") {
 					module.outDbg("         <<<---- responde! " + msgOutro.Message)
-					module.handleUponDeliverRespOk(msgOutro) // ENTRADA DO ALGORITMO
+					module.handleUponDeliverRespOk(msgOutro)
 
 				} else if strings.Contains(msgOutro.Message, "reqEntry") {
 					module.outDbg("          <<<---- pede??  " + msgOutro.Message)
-					module.handleUponDeliverReqEntry(msgOutro) // ENTRADA DO ALGORITMO
+					module.handleUponDeliverReqEntry(msgOutro)
 
 				}
 			}
@@ -145,12 +145,16 @@ func (module *DIMEX_Module) handleUponReqEntry() {
 				trigger [ pl , Send | [ reqEntry, r, myTs ]
 			estado := queroSC
 	*/
+	fmt.Println("===== handleUponReqEntry =====", module.id)
 	module.relogioLoc++
 	module.lastReqTime = module.relogioLoc
 	module.numeroRespostasRecebidas = 0
 	var pl string
 	var leadingSpaces string
 	for i := 0; i < len(module.addresses); i++ {
+		if module.id == i {
+			continue
+		}
 		pl = module.addresses[i]
 		message := module.stringify("reqEntry", module.id, module.relogioLoc)
 		leadingSpaces = strings.Repeat(" ", 22-len(message))
@@ -167,15 +171,18 @@ func (module *DIMEX_Module) handleUponReqExit() {
 			estado := naoQueroSC
 			waiting := {}
 	*/
-	// for i := 0; i < len(module.waiting); i++ {
-	// 	if module.waiting[i] {
-	// 		module.sendToLink(module.addresses[i], "respOk", "                      ")
-	// 	}
-	// 	module.estadoAtual = outMX
-	// 	module.waiting = make([]bool, 0)
-
-	// }
-	fmt.Print("handleUponReqExit")
+	fmt.Println("===== handleUponReqExit =====", module.id)
+	for i := 0; i < len(module.waiting); i++ {
+		if module.waiting[i] {
+			pl := module.addresses[i]
+			message := module.stringify("respOk", module.id, module.relogioLoc)
+			leadingSpaces := strings.Repeat(" ", 22-len(message))
+			module.sendToLink(pl, message, leadingSpaces)
+		}
+	}
+	module.estadoAtual = outMX
+	N := len(module.addresses)
+	module.waiting = make([]bool, N)
 }
 
 // ------------------------------------------------------------------------------------
@@ -192,12 +199,14 @@ func (module *DIMEX_Module) handleUponDeliverRespOk(msgOutro PP2PLink.PP2PLink_I
 			então trigger [ dmx, Deliver | free2Access ]
 				estado := estouNaSC
 	*/
-	// module.numeroRespostasRecebidas++
-	// if module.numeroRespostasRecebidas == len(module.addresses) - 1 {
-	// 	module.Ind <- dmxResp{}
-	// 	module.estadoAtual = inMX
-	// }
-	fmt.Print("handleUponDeliverRespOk")
+	fmt.Println("===== handleUponDeliverRespOk =====", module.id)
+	module.numeroRespostasRecebidas++
+	N := len(module.addresses) -1
+	fmt.Println("numeroRespostasRecebidas: ", module.numeroRespostasRecebidas, " N: ", N)
+	if module.numeroRespostasRecebidas == N {
+		module.Ind <- dmxResp{}
+		module.estadoAtual = inMX
+	}
 }
 
 func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink_Ind_Message) {
@@ -213,18 +222,18 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 				então  postergados := postergados + [p, r ]
 				lts.ts := max(lts.ts, rts.ts)
 	*/
+	fmt.Println("===== handleUponDeliverReqEntry =====", module.id)
 	_, _, relogioPl := module.parse(msgOutro.Message)
 	if (module.estadoAtual == outMX) || (module.estadoAtual == wantMX && module.relogioLoc > relogioPl) {
-		// pl = module.addresses[i]
-		// message := module.stringify("reqEntry", module.id, module.relogioLoc)
-		// leadingSpaces = strings.Repeat(" ", 22-len(message))
-		// module.sendToLink(pl, message, leadingSpaces)
-		module.sendToLink(msgOutro.To, "respOk", "                      ")
+		pl := msgOutro.From
+		message := module.stringify("respOk", module.id, module.relogioLoc)
+		leadingSpaces := strings.Repeat(" ", 22-len(message))
+		module.sendToLink(pl, message, leadingSpaces)
 	} else {
 		if (module.estadoAtual == inMX) || (module.estadoAtual == wantMX && module.relogioLoc < relogioPl) {
 			module.waiting[module.id] = true
-			module.relogioLoc = max(module.relogioLoc, relogioPl)
 		}
+		module.relogioLoc = max(module.relogioLoc, relogioPl)
 	}
 }
 
@@ -259,20 +268,40 @@ func max(a, b int) int {
 	if a > b {
 		return a
 	}
-		return b
+	return b
 }
 
 func (module *DIMEX_Module) stringify(_mensagem string, _id int, _relogioLocal int) string {
 	id := strconv.Itoa(_id)
 	relogioLocal := strconv.Itoa(_relogioLocal)
-	return fmt.Sprintf("%s %s %s", _mensagem, id, relogioLocal)
+	return fmt.Sprintf("(%s) %s ts=%s", id, _mensagem, relogioLocal)
 }
 
-func (module *DIMEX_Module) parse(message string) (mensagem string, id int, relogioLocal int) {
-	mensagem, _id, _relogioLocal := strings.Split(message, " ")[0], 
-									strings.Split(message, " ")[1], 
-									strings.Split(message, " ")[2]
+func (module *DIMEX_Module) parse(msg string) (mensagem string, id int, relogioLocal int) {
+	// Returns ("id") string
+	id_full := getWord(msg, 0)
+	// Returns "id" string
+	_id := remove(remove(id_full, "("), ")")
+	// Returns id int
 	id, _ = strconv.Atoi(_id)
+
+	// Returns text content (respOk, reqSent, etc)
+	mensagem = getWord(msg, 1)
+
+	// Returns ts="ts"
+	relogioLocal_full := getWord(msg, 2)
+	// Returns "ts" string
+	_relogioLocal := remove(relogioLocal_full, "ts=")
+	// Returns ts int
 	relogioLocal, _ = strconv.Atoi(_relogioLocal)
-	return
+
+	return mensagem, id, relogioLocal
+}
+
+func getWord(str string, index int) string {
+	return strings.Split(str, " ")[index]
+}
+
+func remove(str, old string) string {
+	return strings.Replace(string(str), old, "", -1)
 }
