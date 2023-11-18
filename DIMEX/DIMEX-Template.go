@@ -69,7 +69,6 @@ type DIMEX_Module struct {
 func NewDIMEX(_addresses []string, _id int, _dbg bool) *DIMEX_Module {
 
 	p2p := PP2PLink.NewPP2PLink(_addresses[_id], _dbg)
-
 	dmx := &DIMEX_Module{
 		Req: make(chan dmxReq, 1),
 		Ind: make(chan dmxResp, 1),
@@ -223,9 +222,9 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 				lts.ts := max(lts.ts, rts.ts)
 	*/
 	fmt.Println("===== handleUponDeliverReqEntry =====", module.id)
-	_, _, relogioPl := module.parse(msgOutro.Message)
+	_, idOutro, relogioPl := module.parse(msgOutro.Message)
 	if (module.estadoAtual == outMX) || (module.estadoAtual == wantMX && module.relogioLoc > relogioPl) {
-		pl := msgOutro.From
+		pl := module.addresses[idOutro]
 		message := module.stringify("respOk", module.id, module.relogioLoc)
 		leadingSpaces := strings.Repeat(" ", 22-len(message))
 		module.sendToLink(pl, message, leadingSpaces)
