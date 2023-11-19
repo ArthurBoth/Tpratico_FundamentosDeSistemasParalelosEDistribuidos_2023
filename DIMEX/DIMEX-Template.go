@@ -30,6 +30,11 @@ import (
 // ------- principais tipos
 // ------------------------------------------------------------------------------------
 
+const (
+	respOk = "respOk"
+	reqEntry = "reqEntry"
+)
+
 type State int // enumeracao dos estados possiveis de um processo
 const (
 	outMX State = iota
@@ -114,11 +119,11 @@ func (module *DIMEX_Module) Start() {
 
 			case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo
 				fmt.Print("dimex recebe da rede: ", msgOutro)
-				if strings.Contains(msgOutro.Message, "respOK") {
+				if strings.Contains(msgOutro.Message, respOk) {
 					module.outDbg("         <<<---- responde! " + msgOutro.Message)
 					module.handleUponDeliverRespOk(msgOutro)
 
-				} else if strings.Contains(msgOutro.Message, "reqEntry") {
+				} else if strings.Contains(msgOutro.Message, reqEntry) {
 					module.outDbg("          <<<---- pede??  " + msgOutro.Message)
 					module.handleUponDeliverReqEntry(msgOutro)
 
@@ -155,7 +160,7 @@ func (module *DIMEX_Module) handleUponReqEntry() {
 			continue
 		}
 		pl = module.addresses[i]
-		message := module.stringify("reqEntry", module.id, module.relogioLoc)
+		message := module.stringify(reqEntry, module.id, module.relogioLoc)
 		leadingSpaces = strings.Repeat(" ", 22-len(message))
 		module.sendToLink(pl, message, leadingSpaces)
 	}
@@ -174,7 +179,7 @@ func (module *DIMEX_Module) handleUponReqExit() {
 	for i := 0; i < len(module.waiting); i++ {
 		if module.waiting[i] {
 			pl := module.addresses[i]
-			message := module.stringify("respOk", module.id, module.relogioLoc)
+			message := module.stringify(respOk, module.id, module.relogioLoc)
 			leadingSpaces := strings.Repeat(" ", 22-len(message))
 			module.sendToLink(pl, message, leadingSpaces)
 		}
@@ -225,7 +230,7 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 	_, idOutro, relogioPl := module.parse(msgOutro.Message)
 	if (module.estadoAtual == outMX) || (module.estadoAtual == wantMX && module.relogioLoc > relogioPl) {
 		pl := module.addresses[idOutro]
-		message := module.stringify("respOk", module.id, module.relogioLoc)
+		message := module.stringify(respOk, module.id, module.relogioLoc)
 		leadingSpaces := strings.Repeat(" ", 22-len(message))
 		module.sendToLink(pl, message, leadingSpaces)
 	} else {
