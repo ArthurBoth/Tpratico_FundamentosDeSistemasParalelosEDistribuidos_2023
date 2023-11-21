@@ -227,18 +227,18 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 				lts.ts := max(lts.ts, rts.ts)
 	*/
 	fmt.Println("===== handleUponDeliverReqEntry =====", module.id)
-	_, idOutro, relogioPl := module.parse(msgOutro.Message)
-	if (module.estadoAtual == outMX) || (module.estadoAtual == wantMX && module.relogioLoc > relogioPl) {
+	_, idOutro, relogioOutro := module.parse(msgOutro.Message)
+	if module.estadoAtual == outMX || (module.estadoAtual == wantMX && before(idOutro, relogioOutro, module.id, module.relogioLoc)) {
 		pl := module.addresses[idOutro]
 		message := module.stringify(respOk, module.id, module.relogioLoc)
 		leadingSpaces := strings.Repeat(" ", 22-len(message))
 		module.sendToLink(pl, message, leadingSpaces)
+	} else if module.estadoAtual == inMX || (module.estadoAtual == wantMX && before(module.id, module.relogioLoc, idOutro, relogioOutro)) {
+		module.waiting[module.id] = true
 	} else {
-		if (module.estadoAtual == inMX) || (module.estadoAtual == wantMX && module.relogioLoc < relogioPl) {
-			module.waiting[module.id] = true
-		}
-		module.relogioLoc = max(module.relogioLoc, relogioPl)
+		fmt.Println("\033[1;31m === Meia-volta meu chapa : ( === \033[0m")
 	}
+	module.relogioLoc = max(module.relogioLoc, relogioOutro)
 }
 
 // ------------------------------------------------------------------------------------
