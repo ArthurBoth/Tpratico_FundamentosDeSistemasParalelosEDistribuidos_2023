@@ -40,9 +40,9 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run useDIMEX-f.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002 ")
-		fmt.Println("go run useDIMEX-f.go 1 127.0.0.1:7002  127.0.0.1:5000  127.0.0.1:6001 ")
-		fmt.Println("go run useDIMEX-f.go 2 127.0.0.1:6001  127.0.0.1:7002  127.0.0.1:5000 ")
+		fmt.Println("go run useDIMEX-f.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("go run useDIMEX-f.go 1 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("go run useDIMEX-f.go 2 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
 		return
 	}
 
@@ -51,7 +51,7 @@ func main() {
 	// fmt.Print("id: ", id, "   ") fmt.Println(addresses)
 
 	var dmx *DIMEX.DIMEX_Module = DIMEX.NewDIMEX(addresses, id, true)
-	fmt.Println("AEAEOIIOAEIOEAOIEAOI", dmx)
+	fmt.Println(dmx)
 
 	// abre arquivo que TODOS processos devem poder usar
 	file, err := os.OpenFile("./mxOUT.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -68,7 +68,7 @@ func main() {
 		// SOLICITA ACESSO AO DIMEX
 		fmt.Println("[ APP id: ", id, " PEDE   MX ]")
 		dmx.Req <- DIMEX.ENTER
-		fmt.Println("[ APP id: ", id, " ESPERA MX ]")
+		//fmt.Println("[ APP id: ", id, " ESPERA MX ]")
 		// ESPERA LIBERACAO DO MODULO DIMEX
 		<-dmx.Ind //
 

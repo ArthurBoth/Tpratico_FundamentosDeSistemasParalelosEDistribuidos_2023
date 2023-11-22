@@ -104,7 +104,7 @@ func (module *DIMEX_Module) Start() {
 	i := 0
 	go func() {
 		for {
-			fmt.Println("\n\n\\n\n\t\t\tEaí meu chapa: ", i, "\n\\n\n\n")
+			fmt.Println("\n\\n\n\tEaí meu chapa: ", i, "\n\\n\n")
 			i++
 			select {
 			case dmxR := <-module.Req: // vindo da  aplicação
@@ -182,11 +182,10 @@ func (module *DIMEX_Module) handleUponReqExit() {
 			message := module.stringify(respOk, module.id, module.relogioLoc)
 			leadingSpaces := strings.Repeat(" ", 22-len(message))
 			module.sendToLink(pl, message, leadingSpaces)
+			module.waiting[i] = false
 		}
 	}
 	module.estadoAtual = outMX
-	N := len(module.addresses)
-	module.waiting = make([]bool, N)
 }
 
 // ------------------------------------------------------------------------------------
@@ -238,7 +237,9 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 	} else {
 		fmt.Println("\033[1;31m === Meia-volta meu chapa : ( === \033[0m")
 	}
-	module.relogioLoc = max(module.relogioLoc, relogioOutro)
+	if relogioOutro > module.relogioLoc {
+		module.relogioLoc = relogioOutro
+	}
 }
 
 // ------------------------------------------------------------------------------------
@@ -266,13 +267,6 @@ func (module *DIMEX_Module) outDbg(s string) {
 	if module.isDebugging {
 		fmt.Println(". . . . . . . . . . . . [ DIMEX : " + s + " ]")
 	}
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func (module *DIMEX_Module) stringify(_mensagem string, _id int, _relogioLocal int) string {
