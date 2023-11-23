@@ -233,7 +233,7 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 		leadingSpaces := strings.Repeat(" ", 22-len(message))
 		module.sendToLink(pl, message, leadingSpaces)
 	} else if module.estadoAtual == inMX || (module.estadoAtual == wantMX && before(module.id, module.relogioLoc, idOutro, relogioOutro)) {
-		module.waiting[module.id] = true
+		module.waiting[idOutro] = true
 	} else {
 		fmt.Println("\033[1;31m === Meia-volta meu chapa : ( === \033[0m")
 	}
