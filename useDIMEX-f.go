@@ -36,19 +36,31 @@ import (
 	"time"
 )
 
-func main() {
+func getAdresses(args []string) []string {
+	inputWithoutPorts := []string{"fileName", "id"}
+	if len(args) <= len(inputWithoutPorts) {
+		fmt.Println("You can specify your own set of address:port!")
+		fmt.Println("go run useDIMEX-f.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002 ")
+		fmt.Println("go run useDIMEX-f.go 1 127.0.0.1:7002  127.0.0.1:5000  127.0.0.1:6001 ")
+		fmt.Println("go run useDIMEX-f.go 2 127.0.0.1:6001  127.0.0.1:7002  127.0.0.1:5000 ")
+		fmt.Println("We are adopting the default set of 127.0.0.1:[5000, 6001, 7002]")
+		defaultHost := "127.0.0.1"
+		return []string{defaultHost + ":5000", defaultHost + ":6001", defaultHost + ":7002"}
+	}
+	return args[len(inputWithoutPorts):]
+}
 
+func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run useDIMEX-f.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
-		fmt.Println("go run useDIMEX-f.go 1 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
-		fmt.Println("go run useDIMEX-f.go 2 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("You must specify your id!")
+		fmt.Println("go run useDIMEX-f.go 0")
 		return
 	}
 
 	id, _ := strconv.Atoi(os.Args[1])
-	addresses := os.Args[2:]
-	// fmt.Print("id: ", id, "   ") fmt.Println(addresses)
+	addresses := getAdresses(os.Args)
+	fmt.Print("id: ", id, "   ")
+	fmt.Println(addresses)
 
 	var dmx *DIMEX.DIMEX_Module = DIMEX.NewDIMEX(addresses, id, true)
 	fmt.Println(dmx)
@@ -68,7 +80,7 @@ func main() {
 		// SOLICITA ACESSO AO DIMEX
 		fmt.Println("[ APP id: ", id, " PEDE   MX ]")
 		dmx.Req <- DIMEX.ENTER
-		//fmt.Println("[ APP id: ", id, " ESPERA MX ]")
+		fmt.Println("[ APP id: ", id, " ESPERA MX ]")
 		// ESPERA LIBERACAO DO MODULO DIMEX
 		<-dmx.Ind //
 
